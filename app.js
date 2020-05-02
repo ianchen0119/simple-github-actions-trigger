@@ -35,6 +35,8 @@ async function start() {
           return "success";
         case "failed":
           return "failed";
+        case "canceled":
+          return "canceled"
         default:
           return "pending";
       }

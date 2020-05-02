@@ -77,7 +77,7 @@
         border-color: var(--unknown-color);
         transform: scale(0.95);
       }
-      .unknown {
+      .unknown, .canceled, .initializing {
         color: var(--unknown-color);
       }
       .pending {
@@ -129,7 +129,7 @@
       <h2>Repo: <span id="repo">%{REPO}%</span></h2>
       <h2>
         Current Build Status:
-        <span class="unknown" id="status">Initializing</span>
+        <span class="initializing" id="status">Initializing</span>
         <div class="lds-hourglass" id="progress"></div>
       </h2>
       <button class="success" type="submit" id="trigger" disabled>Trigger！</button>
@@ -139,6 +139,8 @@
       (function () {
         /*
         enum State = {
+          initializing,
+          canceled,
           unknown,
           pending,
           success,
@@ -187,7 +189,7 @@
             1
           )}`;
           doms.progress.setAttribute("class", `lds-hourglass ${currentStatus}`);
-          if (["success", "failed"].includes(currentStatus))
+          if (["success", "failed", "canceled"].includes(currentStatus))
             doms.trigger.removeAttribute("disabled");
           else doms.trigger.setAttribute("disabled", "true");
         }
