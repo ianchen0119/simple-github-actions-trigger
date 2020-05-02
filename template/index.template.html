@@ -1,0 +1,203 @@
+<!--
+ Copyright (c) 2020 DevilTea
+ 
+ This software is released under the MIT License.
+ https://opensource.org/licenses/MIT
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Travis CI Trigger | %{REPO}%</title>
+    <style>
+      :root {
+        --dark-color: #555555;
+        --unknown-color: #aaaaaa;
+        --pending-color: #cdb62c;
+        --success-color: #39aa56;
+        --failed-color: #db4545;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+      }
+      body {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        line-height: 1;
+        color: var(--dark-color);
+        font-family: "PingFang TC", Din, "Microsoft YaHei", Avenir, Helvetica,
+          Arial, sans-serif;
+      }
+      main {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+      }
+      main > * {
+        margin: 1rem 0;
+      }
+      h2 {
+        font-size: 0.75rem;
+        font-weight: 300;
+      }
+      #repo,
+      #status {
+        font-size: 1.75rem;
+        font-weight: 400;
+      }
+      #trigger {
+        background-color: #fff;
+        padding: 0.5rem 1rem;
+        border: solid 1px var(--success-color);
+        border-radius: 10px;
+        outline: none;
+        transition: all 0.3s;
+      }
+      #trigger:hover {
+        transform: scale(1.05);
+        transition: all 0.3s;
+      }
+      #trigger:active {
+        transform: scale(0.95);
+        transition: all 0.3s;
+      }
+      #trigger:disabled {
+        color: var(--unknown-color);
+        border-color: var(--unknown-color);
+        transform: scale(0.95);
+      }
+      .unknown {
+        color: var(--unknown-color);
+      }
+      .pending {
+        color: var(--pending-color);
+      }
+      .success {
+        color: var(--success-color);
+      }
+      .failed {
+        color: var(--failed-color);
+      }
+      .lds-hourglass.pending {
+        display: inline-block;
+        position: relative;
+        vertical-align: bottom;
+        width: 1.5rem;
+        height: 1.5rem;
+      }
+      .lds-hourglass.pending:after {
+        content: " ";
+        display: block;
+        border-radius: 50%;
+        width: 0;
+        height: 0;
+        box-sizing: border-box;
+        border: 0.75rem solid var(--pending-color);
+        border-color: var(--pending-color) transparent var(--pending-color)
+          transparent;
+        animation: lds-hourglass 1.2s infinite;
+      }
+      @keyframes lds-hourglass {
+        0% {
+          transform: rotate(0);
+          animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+        }
+        50% {
+          transform: rotate(900deg);
+          animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+        }
+        100% {
+          transform: rotate(1800deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Simple Travis CI Trigger</h1>
+      <h2>Repo: <span id="repo">%{REPO}%</span></h2>
+      <h2>
+        Current Build Status:
+        <span class="unknown" id="status">Initializing</span>
+        <div class="lds-hourglass" id="progress"></div>
+      </h2>
+      <button class="success" type="submit" id="trigger" disabled>Trigger！</button>
+    </main>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+      (function () {
+        /*
+        enum State = {
+          unknown,
+          pending,
+          success,
+          failed,
+        }
+        */
+        const doms = {
+          status: document.getElementById("status"),
+          progress: document.getElementById("progress"),
+          form: document.getElementById("form"),
+          trigger: document.getElementById("trigger"),
+        };
+
+        async function getRepoStatus() {
+          try {
+            const { data } = await axios.get("/api/status");
+            return data.status;
+          } catch (err) {
+            console.error(err);
+            return "unknown";
+          }
+        }
+
+        async function triggerBuild() {
+          return axios.post("/api/builds", {
+            _csrf: "%{CSRF}%",
+          });
+        }
+
+        async function onTrigger(e) {
+          e.preventDefault();
+          await update("pending");
+          try {
+            await triggerBuild();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+
+        async function update(status) {
+          doms.trigger.setAttribute("disabled", "true");
+          const currentStatus = status || (await getRepoStatus());
+          console.log(currentStatus);
+          doms.status.setAttribute("class", currentStatus);
+          doms.status.innerText = `${currentStatus[0].toLocaleUpperCase()}${currentStatus.substr(
+            1
+          )}`;
+          doms.progress.setAttribute("class", `lds-hourglass ${currentStatus}`);
+          if (["success", "failed"].includes(currentStatus))
+            doms.trigger.removeAttribute("disabled");
+          else doms.trigger.setAttribute("disabled", "true");
+        }
+
+        async function init() {
+          doms.trigger.onclick = onTrigger;
+          await update();
+          // Every 10 seconds would update once
+          setInterval(update, 10 * 1000);
+        }
+
+        init();
+      })();
+    </script>
+  </body>
+</html>

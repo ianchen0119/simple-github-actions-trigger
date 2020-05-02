@@ -1,0 +1,12 @@
+{
+  "port": 5000,
+  "sessionKeys": ["keys", "keyskeys"],
+  "travis": {
+    "token": "your travis token",
+    "repository": {
+      "id": "",
+      "slug": "COSCUP/2020",
+      "branch": "master"
+    }
+  }
+}
