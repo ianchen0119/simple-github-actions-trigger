@@ -65,10 +65,11 @@ async function start() {
       .replace(/%{REPO}%/g, repoSlug)
   })()
   let currentStatus = await getBuildStatus()
+  let isTriggerBuffering = false
 
   function newInterval () {
     return setInterval(async () => {
-      currentStatus = await getBuildStatus()
+      currentStatus = isTriggerBuffering || await getBuildStatus()
     }, 5000)
   }
   let interval = newInterval()
@@ -89,14 +90,17 @@ async function start() {
   })
 
   router.post('/api/builds', async (ctx) => {
-    if (currentStatus === 'pending') return
-    clearInterval(interval)
-    interval = null
-    currentStatus = 'pending'
-    await triggerBuild()
-    setTimeout(() => {
-      interval = interval || newInterval()
-    }, 30000)
+    if (currentStatus !== 'pending' && !isTriggerBuffering) {
+      isTriggerBuffering = true
+      clearInterval(interval)
+      interval = null
+      currentStatus = 'pending'
+      await triggerBuild()
+      setTimeout(() => {
+        isTriggerBuffering = false
+        interval = interval || newInterval()
+      }, 30000)
+    }
     ctx.status = 201
   })
 
