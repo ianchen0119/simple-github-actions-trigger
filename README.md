@@ -14,7 +14,7 @@ A simple and tiny trigger page for Travis CI
 ## Quick Start
 
 1. Configure your `config.json`. (ref: `config.example.json`)
-  ```json
+  ```js
   {
     "port": 5000, // the port that service would be hosted
     "sessionKeys": ["keys", "keyskeys"], // keys for csrf
