@@ -9,7 +9,7 @@ const convert = require('koa-convert');
 const CSRF = require('koa-csrf');
 const Router = require('koa-router')
 const fs = require('fs')
-const axios = require('axios').default
+const Axios = require('axios').default
 const config = require('./config.json')
 const identity = encodeURIComponent(config.travis.repository.id || config.travis.repository.slug)
 
@@ -17,19 +17,24 @@ function delay (ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+function axios() {
+  return Axios.create({
+    headers: {
+      'Travis-API-Version': 3,
+      'Authorization': `token ${config.travis.token}`,
+      'User-Agent': 'API Explorer'
+    }
+  })
+}
+
 async function start() {
-  axios.defaults.headers = {
-    'Travis-API-Version': 3,
-    'Authorization': `token ${config.travis.token}`,
-    'User-Agent': 'API Explorer'
-  }
   async function getTravisRepoSlug() {
-    const { data } = await axios.get(`https://api.travis-ci.org/repo/${identity}`)
+    const { data } = await axios().get(`https://api.travis-ci.org/repo/${identity}`)
     return data.slug
   }
   async function getBuildStatus() {
     try {
-      const { data } = await axios.get(`https://api.travis-ci.org/repo/${identity}/builds?limit=1`)
+      const { data } = await axios().get(`https://api.travis-ci.org/repo/${identity}/builds?limit=1`)
       switch (data.builds[0].state) {
         case "passed":
           return "success";
@@ -46,7 +51,7 @@ async function start() {
     }
   }
   async function triggerBuild() {
-    await axios.post(`https://api.travis-ci.org/repo/${identity}/requests`, {
+    await axios().post(`https://api.travis-ci.org/repo/${identity}/requests`, {
       request: {
         branch: config.travis.repository.branch
       }
