@@ -6,10 +6,10 @@
   "scripts": {
     "start": "node app.js"
   },
-  "author": "",
+  "author": "guyleaf",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.21.1",
+    "@octokit/core": "^3.4.0",
     "koa": "^2.11.0",
     "koa-bodyparser": "^4.3.0",
     "koa-convert": "^1.2.0",

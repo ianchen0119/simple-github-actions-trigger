@@ -1,8 +1,8 @@
 <!--
- Copyright (c) 2020 DevilTea
- 
- This software is released under the MIT License.
- https://opensource.org/licenses/MIT
+  Copyright (c) 2020 DevilTea
+  
+  This software is released under the MIT License.
+  https://opensource.org/licenses/MIT
 -->
 
 <!DOCTYPE html>
@@ -172,7 +172,7 @@
 
         async function onTrigger(e) {
           e.preventDefault();
-          await update("pending");
+          await update("sending");
           try {
             await triggerBuild();
           } catch (err) {
@@ -189,9 +189,9 @@
             1
           )}`;
           doms.progress.setAttribute("class", `lds-hourglass ${currentStatus}`);
-          if (["success", "failed", "canceled"].includes(currentStatus))
-            doms.trigger.removeAttribute("disabled");
-          else doms.trigger.setAttribute("disabled", "true");
+          if (["in_progress", "queued", "sending"].includes(currentStatus))
+            doms.trigger.setAttribute("disabled", "true");
+          else doms.trigger.removeAttribute("disabled");
         }
 
         async function init() {

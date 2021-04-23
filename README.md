@@ -21,12 +21,12 @@ A simple and tiny trigger page for Github actions.
   "port": 5000, // the port that service would be hosted
   "sessionKeys": ["keys", "keyskeys"], // keys for csrf
   "github_actions": {
-    "token": "your github access token",
+    "token": "your github personal access token",
     "repository": {
-      "owner": "",
-      "id": "",
-      "name": "COSCUP/2020",
-      "filename": "Deploy.yml" // CI config file
+      "owner": "COSCUP",
+      "workflow_id": "", // workflow filename or id
+      "branch": "", // branch you want to trigger rebuild
+      "name": "2021"
     }
   }
 }
@@ -49,3 +49,4 @@ A simple and tiny trigger page for Github actions.
 - [Creating CI tests with the Checks API](https://docs.github.com/en/developers/apps/creating-ci-tests-with-the-checks-api#step-13-creating-a-check-run)
 - [Actions](https://docs.github.com/en/rest/reference/actions)
 - [GitHub Actions 手动触发方式进化史](https://p3terx.com/archives/github-actions-manual-trigger.html)
+- [Observing Action Status](https://tabris.com/observing-workflow-run-status-on-github)
