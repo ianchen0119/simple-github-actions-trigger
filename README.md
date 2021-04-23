@@ -21,12 +21,11 @@ A simple and tiny trigger page for Github actions.
   "port": 5000, // the port that service would be hosted
   "sessionKeys": ["keys", "keyskeys"], // keys for csrf
   "github_actions": {
-    "token": "your github access token",
+    "token": "your github personal access token",
     "repository": {
-      "owner": "",
-      "id": "",
-      "name": "COSCUP/2020",
-      "filename": "Deploy.yml" // CI config file
+      "owner": "COSCUP",
+      "run_id": "", // workflow id
+      "name": "2021"
     }
   }
 }

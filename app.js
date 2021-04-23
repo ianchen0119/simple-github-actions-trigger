@@ -3,65 +3,63 @@
  *  Copyright (c) 2020 DevilTea
  * 
  *  This software is released under the MIT License.
- */ https://opensource.org/licenses/MIT
+ * https://opensource.org/licenses/MIT
+ */
 
 const Koa = require('koa');
 const bodyParser = require('koa-bodyparser');
 const session = require('koa-generic-session');
 const convert = require('koa-convert');
 const CSRF = require('koa-csrf');
-const Router = require('koa-router')
-const fs = require('fs')
-const Axios = require('axios').default
-const config = require('./config.json')
-const repo = config.github_actions.repository
+const Router = require('koa-router');
+const fs = require('fs');
+const { Octokit } = require('@octokit/core');
+const config = require('./config.json');
+const repo = config.github_actions.repository;
 
-// function delay (ms) {
-//   return new Promise((resolve) => setTimeout(resolve, ms))
-// }
-
-function axios() {
-  return Axios.create({
-    headers: {
-      'accept': 'application/vnd.github.v3+json',
-      'Authorization': `token ${config.github_actions.token}`
-    }
-  })
+function octokit() {
+  return new Octokit({
+    auth: config.github_actions.token,
+    userAgent: 'API explorer',
+    timeZone: 'Asia/Taipei'
+  });
 }
 
 async function start() {
   async function triggerBuild(){
-    await axios().get(`https://api.github.com/repos/${repo.owner}/${repo.name}/actions/workflows/${repo.filename}/dispatches`)
-    .then((res)=>{
-      console.log(res);
-    })
+    await octokit().request(`/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches`, {
+      owner: repo.owner,
+      repo: repo.name,
+      workflow_id: repo.workflow_id,
+      ref: repo.branch
+    });
   }
   async function getBuildStatus() {
     try {
-      const { data } = await axios().get(`https://api.github.com/repos/${repo.owner}/${repo.name}/actions/runs`)
-      switch (data.workflow_runs[0].status) {
-        /*  Status: success :3
-         *  when all statuses and checks have a successful outcome.
+      const { data } = await octokit().request('GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs', {
+        owner: repo.owner,
+        repo: repo.name,
+        workflow_id: repo.workflow_id
+      });
+
+      if (data.total_count === 0) {
+        return "unknown";
+      }
+
+      const run = data.workflow_runs[0];
+
+      switch (run.status) {
+        /*
+         * status: completed
+         * conclusion: “success”, “failure”, “neutral”, “cancelled”, “skipped”, “timed_out”, or “action_required”.
+         * only indicate the workflow run is finished, need to log conclusion message
          */
-        case "success":
-          return "success";
-        /*  Status: failure QwQ
-         *  when any status or check has failed, even though other checks might still be running.
-         */
-        case "failure":
-          return "failure";
-        /*  Status: error T~T
-         *  when an error occurs, log output will include the response body.
-         */
-        case "error":
-          return "error"
-        /*  Status: rate_limited OAO!
-         *  when the API calls this action makes are rate limited.
-         */
-        case "rate_limited":
-          return "rate_limited";
+        case "completed":
+          return run.conclusion;
+        case "in_progress":
+          return "running";
         default:
-          return "Queued";
+          return "queued";
       }
     } catch (err) {
       console.error(err);
@@ -72,7 +70,7 @@ async function start() {
   const indexTemplate = (() => {
     return fs.readFileSync('./template/index.template.html')
       .toString()
-      .replace(/%{REPO}%/g, repo.name)
+      .replace(/%{REPO}%/g, repo.owner + '/' + repo.name);
   })()
   let currentStatus = await getBuildStatus()
   let isTriggerBuffering = false
@@ -100,11 +98,11 @@ async function start() {
   })
 
   router.post('/api/builds', async (ctx) => {
-    if (currentStatus !== 'pending' && !isTriggerBuffering) {
+    if (currentStatus !== 'queued' && !isTriggerBuffering) {
       isTriggerBuffering = true
       clearInterval(interval)
       interval = null
-      currentStatus = 'pending'
+      currentStatus = 'queued'
       await triggerBuild()
       setTimeout(() => {
         isTriggerBuffering = false

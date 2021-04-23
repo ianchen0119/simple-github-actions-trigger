@@ -2,12 +2,12 @@
   "port": 5000,
   "sessionKeys": ["keys", "keyskeys"],
   "github_actions": {
-    "token": "your github access token",
+    "token": "your github personal access token",
     "repository": {
-      "owner": "",
-      "id": "",
-      "name": "COSCUP/2020",
-      "filename": "Deploy.yml"
+      "owner": "COSCUP",
+      "workflow_id": "",
+      "branch": "",
+      "name": "2021"
     }
   }
 }
