@@ -58,8 +58,10 @@ async function start() {
           return run.conclusion;
         case "in_progress":
           return "running";
-        default:
+        case "queued":
           return "queued";
+        default:
+          return "unknown";
       }
     } catch (err) {
       console.error(err);
@@ -102,7 +104,6 @@ async function start() {
       isTriggerBuffering = true
       clearInterval(interval)
       interval = null
-      currentStatus = 'queued'
       await triggerBuild()
       setTimeout(() => {
         isTriggerBuffering = false
