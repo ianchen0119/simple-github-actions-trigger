@@ -1,7 +1,7 @@
 {
-  "name": "simple-travis-ci-trigger",
+  "name": "simple-github-actions-trigger",
   "version": "1.0.0",
-  "description": "A simple Travis CI Trigger.",
+  "description": "A simple Github Actions Trigger.",
   "main": "app.js",
   "scripts": {
     "start": "node app.js"

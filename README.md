@@ -1,32 +1,35 @@
 <!--
+ Based on simple-travis-ci-trigger project
  Copyright (c) 2020 DevilTea
  
  This software is released under the MIT License.
  https://opensource.org/licenses/MIT
 -->
 
-# Simple Travis CI Trigger
+# Simple Github Actions Trigger
 
-A simple and tiny trigger page for Travis CI
-
-> only for "api.travis-ci.org"
+A simple and tiny trigger page for Github actions.
 
 ## Quick Start
 
-1. Configure your `config.json`. (ref: `config.example.json`)
+1. Generate your own access token.
+  please click the [link](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) to get more details.
+
+2. Configure your `config.json`. (ref: `config.example.json`)
   ```js
   {
-    "port": 5000, // the port that service would be hosted
-    "sessionKeys": ["keys", "keyskeys"], // keys for csrf
-    "travis": {
-      "token": "your travis token", // as the value :)
-      "repository": { // one of id or slug is needed
-        "id": "", // 1st priority
-        "slug": "COSCUP/2020", // 2nd priority
-        "branch": "master" // the branch to trigger
-      }
+  "port": 5000, // the port that service would be hosted
+  "sessionKeys": ["keys", "keyskeys"], // keys for csrf
+  "github_actions": {
+    "token": "your github access token",
+    "repository": {
+      "owner": "",
+      "id": "",
+      "name": "COSCUP/2020",
+      "filename": "Deploy.yml" // CI config file
     }
   }
+}
   ```
 
 2. Install dependencies
@@ -41,3 +44,8 @@ A simple and tiny trigger page for Travis CI
 
 4. Check `localhost:{port}` in browser
   ![screenshot](./docs/images/screenshot.png)
+
+## References
+- [Creating CI tests with the Checks API](https://docs.github.com/en/developers/apps/creating-ci-tests-with-the-checks-api#step-13-creating-a-check-run)
+- [Actions](https://docs.github.com/en/rest/reference/actions)
+- [GitHub Actions 手动触发方式进化史](https://p3terx.com/archives/github-actions-manual-trigger.html)

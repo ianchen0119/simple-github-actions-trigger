@@ -1,7 +1,10 @@
-// Copyright (c) 2020 DevilTea
-// 
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
+/* 
+ *  Based on simple-travis-ci-trigger project
+ *  Copyright (c) 2020 DevilTea
+ * 
+ *  This software is released under the MIT License.
+ */ https://opensource.org/licenses/MIT
+
 const Koa = require('koa');
 const bodyParser = require('koa-bodyparser');
 const session = require('koa-generic-session');
@@ -11,58 +14,65 @@ const Router = require('koa-router')
 const fs = require('fs')
 const Axios = require('axios').default
 const config = require('./config.json')
-const identity = encodeURIComponent(config.travis.repository.id || config.travis.repository.slug)
+const repo = config.github_actions.repository
 
-function delay (ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
+// function delay (ms) {
+//   return new Promise((resolve) => setTimeout(resolve, ms))
+// }
 
 function axios() {
   return Axios.create({
     headers: {
-      'Travis-API-Version': 3,
-      'Authorization': `token ${config.travis.token}`,
-      'User-Agent': 'API Explorer'
+      'accept': 'application/vnd.github.v3+json',
+      'Authorization': `token ${config.github_actions.token}`
     }
   })
 }
 
 async function start() {
-  async function getTravisRepoSlug() {
-    const { data } = await axios().get(`https://api.travis-ci.org/repo/${identity}`)
-    return data.slug
+  async function triggerBuild(){
+    await axios().get(`https://api.github.com/repos/${repo.owner}/${repo.name}/actions/workflows/${repo.filename}/dispatches`)
+    .then((res)=>{
+      console.log(res);
+    })
   }
   async function getBuildStatus() {
     try {
-      const { data } = await axios().get(`https://api.travis-ci.org/repo/${identity}/builds?limit=1`)
-      switch (data.builds[0].state) {
-        case "passed":
+      const { data } = await axios().get(`https://api.github.com/repos/${repo.owner}/${repo.name}/actions/runs`)
+      switch (data.workflow_runs[0].status) {
+        /*  Status: success :3
+         *  when all statuses and checks have a successful outcome.
+         */
+        case "success":
           return "success";
-        case "failed":
-          return "failed";
-        case "canceled":
-          return "canceled"
+        /*  Status: failure QwQ
+         *  when any status or check has failed, even though other checks might still be running.
+         */
+        case "failure":
+          return "failure";
+        /*  Status: error T~T
+         *  when an error occurs, log output will include the response body.
+         */
+        case "error":
+          return "error"
+        /*  Status: rate_limited OAO!
+         *  when the API calls this action makes are rate limited.
+         */
+        case "rate_limited":
+          return "rate_limited";
         default:
-          return "pending";
+          return "Queued";
       }
     } catch (err) {
       console.error(err);
       return "unknown";
     }
   }
-  async function triggerBuild() {
-    await axios().post(`https://api.travis-ci.org/repo/${identity}/requests`, {
-      request: {
-        branch: config.travis.repository.branch
-      }
-    })
-  }
 
-  const repoSlug = await getTravisRepoSlug()
   const indexTemplate = (() => {
     return fs.readFileSync('./template/index.template.html')
       .toString()
-      .replace(/%{REPO}%/g, repoSlug)
+      .replace(/%{REPO}%/g, repo.name)
   })()
   let currentStatus = await getBuildStatus()
   let isTriggerBuffering = false
