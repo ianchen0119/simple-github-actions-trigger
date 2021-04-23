@@ -24,7 +24,8 @@ A simple and tiny trigger page for Github actions.
     "token": "your github personal access token",
     "repository": {
       "owner": "COSCUP",
-      "run_id": "", // workflow id
+      "workflow_id": "", // workflow filename or id
+      "branch": "", // branch you want to trigger rebuild
       "name": "2021"
     }
   }
@@ -48,3 +49,4 @@ A simple and tiny trigger page for Github actions.
 - [Creating CI tests with the Checks API](https://docs.github.com/en/developers/apps/creating-ci-tests-with-the-checks-api#step-13-creating-a-check-run)
 - [Actions](https://docs.github.com/en/rest/reference/actions)
 - [GitHub Actions 手动触发方式进化史](https://p3terx.com/archives/github-actions-manual-trigger.html)
+- [Observing Action Status](https://tabris.com/observing-workflow-run-status-on-github)
