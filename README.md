@@ -18,18 +18,18 @@ A simple and tiny trigger page for Github actions.
 2. Configure your `config.json`. (ref: `config.example.json`)
   ```js
   {
-  "port": 5000, // the port that service would be hosted
-  "sessionKeys": ["keys", "keyskeys"], // keys for csrf
-  "github_actions": {
-    "token": "your github personal access token",
-    "repository": {
-      "owner": "COSCUP",
-      "workflow_id": "", // workflow filename or id
-      "branch": "", // branch you want to trigger rebuild
-      "name": "2021"
+    "port": 5000, // the port that service would be hosted
+    "sessionKeys": ["keys", "keyskeys"], // keys for csrf
+    "github_actions": {
+      "token": "your github personal access token",
+      "repository": {
+        "owner": "COSCUP",
+        "workflow_id": "", // workflow filename or id
+        "branch": "", // branch you want to trigger rebuild
+        "name": "2021"
+      }
     }
   }
-}
   ```
 
 2. Install dependencies
