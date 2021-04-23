@@ -15,9 +15,10 @@
       :root {
         --dark-color: #555555;
         --unknown-color: #aaaaaa;
-        --pending-color: #cdb62c;
+        --queued-color: #cdb62c;
         --success-color: #39aa56;
-        --failed-color: #db4545;
+        --failure-color: #db4545;
+        --sending-color: #e9cf38;
       }
       html,
       body {
@@ -77,34 +78,92 @@
         border-color: var(--unknown-color);
         transform: scale(0.95);
       }
-      .unknown, .canceled, .initializing {
+      .unknown, .canceled, .skipped, .neutral, .action_required, .initializing {
         color: var(--unknown-color);
       }
-      .pending {
-        color: var(--pending-color);
+      .queued {
+        color: var(--queued-color);
+      }
+      .sending {
+        color: var(--sending-color);
       }
       .success {
         color: var(--success-color);
       }
-      .failed {
-        color: var(--failed-color);
+      .failure, .timed_out {
+        color: var(--failure-color);
       }
-      .lds-hourglass.pending {
+      .lds-ellipsis.sending {
+        display: inline-block;
+        position: relative;
+        width: 1.5rem;
+        height: 1.5rem;
+      }
+      .lds-ellipsis.sending div {
+        position: absolute;
+        top: calc(1.5rem - 13px);
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background: var(--sending-color);
+        animation-timing-function: cubic-bezier(0, 1, 1, 0);
+      }
+      .lds-ellipsis div:nth-child(1) {
+        left: 8px;
+        animation: lds-ellipsis1 0.6s infinite;
+      }
+      .lds-ellipsis div:nth-child(2) {
+        left: 8px;
+        animation: lds-ellipsis2 0.6s infinite;
+      }
+      .lds-ellipsis div:nth-child(3) {
+        left: 32px;
+        animation: lds-ellipsis2 0.6s infinite;
+      }
+      .lds-ellipsis div:nth-child(4) {
+        left: 56px;
+        animation: lds-ellipsis3 0.6s infinite;
+      }
+      @keyframes lds-ellipsis1 {
+        0% {
+          transform: scale(0);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+      @keyframes lds-ellipsis3 {
+        0% {
+          transform: scale(1);
+        }
+        100% {
+          transform: scale(0);
+        }
+      }
+      @keyframes lds-ellipsis2 {
+        0% {
+          transform: translate(0, 0);
+        }
+        100% {
+          transform: translate(24px, 0);
+        }
+      }      
+      .lds-hourglass.queued {
         display: inline-block;
         position: relative;
         vertical-align: bottom;
         width: 1.5rem;
         height: 1.5rem;
       }
-      .lds-hourglass.pending:after {
+      .lds-hourglass.queued:after {
         content: " ";
         display: block;
         border-radius: 50%;
         width: 0;
         height: 0;
         box-sizing: border-box;
-        border: 0.75rem solid var(--pending-color);
-        border-color: var(--pending-color) transparent var(--pending-color)
+        border: 0.75rem solid var(--queued-color);
+        border-color: var(--queued-color) transparent var(--queued-color)
           transparent;
         animation: lds-hourglass 1.2s infinite;
       }
@@ -121,6 +180,9 @@
           transform: rotate(1800deg);
         }
       }
+      @keyframes lds-ellipsis {
+
+      }
     </style>
   </head>
   <body>
@@ -130,7 +192,7 @@
       <h2>
         Current Build Status:
         <span class="initializing" id="status">Initializing</span>
-        <div class="lds-hourglass" id="progress"></div>
+        <div class="" id="progress"><div></div><div></div><div></div><div></div></div>
       </h2>
       <button class="success" type="submit" id="trigger" disabled>Trigger！</button>
     </main>
@@ -140,11 +202,15 @@
         /*
         enum State = {
           initializing,
+          sending,
           canceled,
           unknown,
-          pending,
+          queued,
           success,
-          failed,
+          failure,
+          skipped,
+          neutral,
+          action_required
         }
         */
         const doms = {
@@ -188,7 +254,10 @@
           doms.status.innerText = `${currentStatus[0].toLocaleUpperCase()}${currentStatus.substr(
             1
           )}`;
-          doms.progress.setAttribute("class", `lds-hourglass ${currentStatus}`);
+          if (currentStatus === "sending")
+            doms.progress.setAttribute("class", `lds-ellipsis ${currentStatus}`);
+          else
+            doms.progress.setAttribute("class", `lds-hourglass ${currentStatus}`);
           if (["in_progress", "queued", "sending"].includes(currentStatus))
             doms.trigger.setAttribute("disabled", "true");
           else doms.trigger.removeAttribute("disabled");
