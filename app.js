@@ -27,7 +27,7 @@ function octokit() {
 
 async function start() {
   async function triggerBuild(){
-    await octokit().request(`/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches`, {
+    await octokit().request(`POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches`, {
       owner: repo.owner,
       repo: repo.name,
       workflow_id: repo.workflow_id,
@@ -79,7 +79,7 @@ async function start() {
 
   function newInterval () {
     return setInterval(async () => {
-      currentStatus = isTriggerBuffering || await getBuildStatus()
+      currentStatus = isTriggerBuffering ? currentStatus : await getBuildStatus()
     }, 5000)
   }
   let interval = newInterval()
@@ -100,15 +100,16 @@ async function start() {
   })
 
   router.post('/api/builds', async (ctx) => {
-    if (currentStatus !== 'queued' && !isTriggerBuffering) {
+    if (!["running", "queued"].includes(currentStatus) && !isTriggerBuffering) {
       isTriggerBuffering = true
       clearInterval(interval)
       interval = null
       await triggerBuild()
+      currentStatus = "queued"
       setTimeout(() => {
+        interval = newInterval()
         isTriggerBuffering = false
-        interval = interval || newInterval()
-      }, 30000)
+      }, 5000)
     }
     ctx.status = 201
   })
