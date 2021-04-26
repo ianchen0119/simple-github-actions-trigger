@@ -27,7 +27,7 @@ function octokit() {
 
 async function start() {
   async function triggerBuild(){
-    await octokit().request(`/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches`, {
+    await octokit().request(`POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches`, {
       owner: repo.owner,
       repo: repo.name,
       workflow_id: repo.workflow_id,
@@ -105,10 +105,12 @@ async function start() {
       clearInterval(interval)
       interval = null
       await triggerBuild()
-      setTimeout(() => {
-        isTriggerBuffering = false
-        interval = interval || newInterval()
-      }, 30000)
+      isTriggerBuffering = false
+      interval = newInterval()
+      // setTimeout(() => {
+      //   isTriggerBuffering = false
+      //   interval = interval || newInterval()
+      // }, 3000)
     }
     ctx.status = 201
   })
