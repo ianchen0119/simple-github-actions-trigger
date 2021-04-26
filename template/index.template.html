@@ -262,7 +262,7 @@
             doms.progress.setAttribute("class", `lds-ellipsis ${currentStatus}`);
           else
             doms.progress.setAttribute("class", `lds-hourglass ${currentStatus}`);
-          if (["in_progress", "queued", "sending"].includes(currentStatus))
+          if (["running", "queued", "sending"].includes(currentStatus))
             doms.trigger.setAttribute("disabled", "true");
           else doms.trigger.removeAttribute("disabled");
         }
@@ -270,7 +270,7 @@
         async function init() {
           doms.trigger.onclick = onTrigger;
           await update();
-          // Every 10 seconds would update once
+          // Every 5 seconds would update once
           setInterval(update, 5 * 1000);
         }
 

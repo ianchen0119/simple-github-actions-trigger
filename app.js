@@ -79,7 +79,7 @@ async function start() {
 
   function newInterval () {
     return setInterval(async () => {
-      currentStatus = isTriggerBuffering || await getBuildStatus()
+      currentStatus = isTriggerBuffering ? currentStatus : await getBuildStatus()
     }, 5000)
   }
   let interval = newInterval()
@@ -100,17 +100,16 @@ async function start() {
   })
 
   router.post('/api/builds', async (ctx) => {
-    if (currentStatus !== 'queued' && !isTriggerBuffering) {
+    if (!["running", "queued"].includes(currentStatus) && !isTriggerBuffering) {
       isTriggerBuffering = true
       clearInterval(interval)
       interval = null
       await triggerBuild()
-      isTriggerBuffering = false
-      interval = newInterval()
-      // setTimeout(() => {
-      //   isTriggerBuffering = false
-      //   interval = interval || newInterval()
-      // }, 3000)
+      currentStatus = "queued"
+      setTimeout(() => {
+        interval = newInterval()
+        isTriggerBuffering = false
+      }, 5000)
     }
     ctx.status = 201
   })
